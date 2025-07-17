@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>COMMERCIAL</title>
+  <script src="https://player.vimeo.com/api/player.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Diatype', sans-serif;
+      font-weight: 700;
+      background: white;
+      color: black;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 8rem;
+      padding: 1rem 1rem 0.1rem;
+      filter: blur(3px);
+      transition: filter 0.3s;
+      max-width: 1150px;
+      margin: 0 auto;
+      opacity: 85%
+    }
+
+    h1:hover {
+      filter: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      max-width: 1150px;
+      margin: 0 auto;
+      padding-bottom: 4rem;
+      transition: filter 0.3s ease;
+    }
+
+    .tile {
+      position: relative;
+      padding-bottom: 56.25%;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .tile iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      filter: blur(4px);
+      transition: filter 0.3s;
+      pointer-events: none;
+    }
+
+    .tile:hover iframe {
+      filter: none;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .overlay iframe {
+      width: 80vw;
+      height: 45vw;
+      max-width: 1280px;
+      max-height: 720px;
+      border: none;
+      border-radius: 12px;
+      z-index: 1001;
+    }
+
+    .blurred {
+      filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+
+<h1>MUSIC VIDEO</h1>
+
+<div class="fade-mask">
+  <div class="grid" id="video-grid"></div>
+</div>
+
+<div class="overlay" id="video-overlay"></div>
+
+<script>
+const videoIds = [
+  866165268, 866188676, 866552150, 866165396, 866166561, 866140851, 866165332, 866160886, 866167814, 866167873, 866152457, 866167890, 866165332,  
+];
+
+const grid = document.getElementById('video-grid');
+const overlay = document.getElementById('video-overlay');
+const players = {};
+let activePlayer = null;
+
+videoIds.forEach(id => {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+  tile.dataset.id = id;
+
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
+  iframe.allow = 'autoplay; fullscreen';
+  tile.appendChild(iframe);
+  grid.appendChild(tile);
+
+  const previewPlayer = new Vimeo.Player(iframe);
+  players[id] = previewPlayer;
+
+  previewPlayer.on('loaded', () => {
+    previewPlayer.setCurrentTime(50).catch(() => {});
+  });
+
+  tile.addEventListener('click', () => {
+    Object.values(players).forEach(p => {
+      p.pause().catch(() => {});
+    });
+
+    document.querySelector('.grid').classList.add('blurred');
+    document.querySelector('h1').classList.add('blurred');
+
+    overlay.innerHTML = '';
+    const fullIframe = document.createElement('iframe');
+    fullIframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=0&controls=1`;
+    fullIframe.allow = 'autoplay; fullscreen';
+    overlay.appendChild(fullIframe);
+    overlay.classList.add('active');
+
+    const player = new Vimeo.Player(fullIframe);
+    activePlayer = player;
+
+    player.on('ended', closeOverlay);
+  });
+});
+
+overlay.addEventListener('click', (e) => {
+  if (e.target === overlay) {
+    closeOverlay();
+  }
+});
+
+function closeOverlay() {
+  overlay.classList.remove('active');
+  overlay.innerHTML = '';
+  document.querySelector('.grid').classList.remove('blurred');
+  document.querySelector('h1').classList.remove('blurred');
+
+  Object.values(players).forEach(p => {
+    p.setVolume(0);
+    p.setLoop(true);
+    p.play().catch(() => {});
+  });
+
+  activePlayer = null;
+}
+</script>
+
+</body>
+</html>
