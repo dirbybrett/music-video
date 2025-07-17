@@ -22,7 +22,7 @@
       transition: filter 0.3s;
       max-width: 1150px;
       margin: 0 auto;
-      opacity: 85%
+      opacity: 85%;
     }
 
     h1:hover {
@@ -88,6 +88,35 @@
 
     .blurred {
       filter: blur(8px);
+    }
+
+    /* Responsive styles for mobile */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 4rem;
+        padding: 1rem;
+        /* Left-aligned on mobile */
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 4rem;
+      }
+
+      .overlay iframe {
+        width: 95vw;
+        height: 53.4vw;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2.25rem;
+      }
+
+      .overlay iframe {
+        height: 56.25vw;
+      }
     }
   </style>
 </head>
