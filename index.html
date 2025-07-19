@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>COMMERCIAL</title>
+  <title>MUSIC VIDEO</title>
   <script src="https://player.vimeo.com/api/player.js"></script>
   <style>
     body {
@@ -45,17 +45,23 @@
       border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
+      background: #ddd;
     }
 
-    .tile iframe {
+    .tile iframe,
+    .tile img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       border: none;
-      filter: blur(4px);
+      object-fit: cover;
       transition: filter 0.3s;
       pointer-events: none;
+    }
+
+    .tile iframe {
+      filter: blur(4px);
     }
 
     .tile:hover iframe {
@@ -90,17 +96,19 @@
       filter: blur(8px);
     }
 
-    /* Responsive styles for mobile */
     @media (max-width: 768px) {
       h1 {
         font-size: 4rem;
         padding: 1rem;
-        /* Left-aligned on mobile */
       }
 
       .grid {
         grid-template-columns: 1fr;
         padding: 0 1rem 4rem;
+      }
+
+      .tile iframe {
+        filter: none !important;
       }
 
       .overlay iframe {
@@ -132,7 +140,9 @@
 
 <script>
 const videoIds = [
-  866165268, 866188676, 866552150, 866165396, 866166561, 866140851, 866165332, 866160886, 866167814, 866167873, 866152457, 866167890, 866165332,  
+  866165268, 866188676, 866552150, 866165396, 866166561,
+  866140851, 866165332, 866160886, 866167814, 866167873,
+  866152457, 866167890, 866165332
 ];
 
 const grid = document.getElementById('video-grid');
@@ -140,23 +150,46 @@ const overlay = document.getElementById('video-overlay');
 const players = {};
 let activePlayer = null;
 
+const isMobile = window.innerWidth <= 768;
+
 videoIds.forEach(id => {
   const tile = document.createElement('div');
   tile.className = 'tile';
   tile.dataset.id = id;
 
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
-  iframe.allow = 'autoplay; fullscreen';
-  tile.appendChild(iframe);
-  grid.appendChild(tile);
+  if (isMobile) {
+    // Mobile: use oEmbed to get thumbnail
+    fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        const img = document.createElement('img');
+        img.src = data.thumbnail_url;
+        img.alt = "Video thumbnail";
+        tile.appendChild(img);
+      })
+      .catch(() => {
+        const fallback = document.createElement('div');
+        fallback.textContent = "Preview unavailable";
+        fallback.style.cssText = "color: #666; font-size: 1rem; padding: 1rem; text-align: center;";
+        tile.appendChild(fallback);
+      });
+  } else {
+    // Desktop: use autoplay iframe
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
+    iframe.allow = 'autoplay; fullscreen';
+    tile.appendChild(iframe);
 
-  const previewPlayer = new Vimeo.Player(iframe);
-  players[id] = previewPlayer;
+    const previewPlayer = new Vimeo.Player(iframe);
+    players[id] = previewPlayer;
 
-  previewPlayer.on('loaded', () => {
-    previewPlayer.setCurrentTime(50).catch(() => {});
-  });
+    // Start preview at 50 seconds
+    previewPlayer.on('loaded', () => {
+      previewPlayer.setCurrentTime(50).catch(() => {});
+    });
+
+    previewPlayer.play().catch(() => {});
+  }
 
   tile.addEventListener('click', () => {
     Object.values(players).forEach(p => {
@@ -178,6 +211,8 @@ videoIds.forEach(id => {
 
     player.on('ended', closeOverlay);
   });
+
+  grid.appendChild(tile);
 });
 
 overlay.addEventListener('click', (e) => {
