@@ -15,14 +15,19 @@
       overflow-x: hidden;
     }
 
-    h1 {
-      font-size: 8rem;
-      padding: 1rem 1rem 0.1rem;
-      filter: blur(3px);
-      transition: filter 0.3s;
+    .container {
       max-width: 1150px;
       margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      font-size: 8rem;
+      padding: 1rem 0 0.1rem;
+      filter: blur(3px);
+      transition: filter 0.3s;
       opacity: 85%;
+      margin: 0;
     }
 
     h1:hover {
@@ -33,8 +38,6 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
-      max-width: 1150px;
-      margin: 0 auto;
       padding-bottom: 4rem;
       transition: filter 0.3s ease;
     }
@@ -99,12 +102,11 @@
     @media (max-width: 768px) {
       h1 {
         font-size: 4rem;
-        padding: 1rem;
+        padding: 1rem 0 0.1rem;
       }
 
       .grid {
         grid-template-columns: 1fr;
-        padding: 0 1rem 4rem;
       }
 
       .tile iframe {
@@ -130,9 +132,8 @@
 </head>
 <body>
 
-<h1>MUSIC VIDEO</h1>
-
-<div class="fade-mask">
+<div class="container">
+  <h1>MUSIC VIDEO</h1>
   <div class="grid" id="video-grid"></div>
 </div>
 
@@ -158,7 +159,6 @@ videoIds.forEach(id => {
   tile.dataset.id = id;
 
   if (isMobile) {
-    // Mobile: use oEmbed to get thumbnail
     fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -174,7 +174,6 @@ videoIds.forEach(id => {
         tile.appendChild(fallback);
       });
   } else {
-    // Desktop: use autoplay iframe
     const iframe = document.createElement('iframe');
     iframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
     iframe.allow = 'autoplay; fullscreen';
@@ -183,7 +182,6 @@ videoIds.forEach(id => {
     const previewPlayer = new Vimeo.Player(iframe);
     players[id] = previewPlayer;
 
-    // Start preview at 50 seconds
     previewPlayer.on('loaded', () => {
       previewPlayer.setCurrentTime(50).catch(() => {});
     });
@@ -239,3 +237,4 @@ function closeOverlay() {
 
 </body>
 </html>
+ 
